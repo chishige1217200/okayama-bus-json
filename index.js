@@ -3,7 +3,6 @@ const cors = require("cors");
 const axios = require("axios");
 const protobuf = require("protobufjs");
 const fs = require("fs");
-const csv = require("csv-parser");
 
 // gtfs-realtime.protoを読込
 const loadProto = () => protobuf.load("./gtfs-realtime.proto");
@@ -46,30 +45,30 @@ const parseData = async (source, isLocal = false) => {
  * @returns {string} - stop_nameまたは"無効データ"
  */
 function getStopNameById(stopId) {
-    try {
-        // ファイル全体を同期的に読み込む
-        const data = fs.readFileSync("ryobi/stops.txt", 'utf-8');
-        const rows = data.split('\n'); // 行単位で分割
+  try {
+    // ファイル全体を同期的に読み込む
+    const data = fs.readFileSync("ryobi/stops.txt", "utf-8");
+    const rows = data.split("\n"); // 行単位で分割
 
-        // CSVヘッダーを除外してデータをループ
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i].trim().replace(/"/g, ''); // ダブルコーテーションをすべて除去
+    // CSVヘッダーを除外してデータをループ
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i].trim().replace(/"/g, ""); // ダブルコーテーションをすべて除去
 
-            if (!row) continue; // 空行をスキップ
+      if (!row) continue; // 空行をスキップ
 
-            const columns = row.split(',');
+      const columns = row.split(",");
 
-            // stop_idが一致する行を探す
-            if (columns[0] === stopId) {
-                return columns[2] || "無効データ"; // stop_nameを返却
-            }
-        }
-
-        return "無効データ"; // 見つからなかった場合
-    } catch (error) {
-        console.error('エラーが発生しました:', error);
-        return "無効データ";
+      // stop_idが一致する行を探す
+      if (columns[0] === stopId) {
+        return columns[2] || "無効データ"; // stop_nameを返却
+      }
     }
+
+    return "無効データ"; // 見つからなかった場合
+  } catch (error) {
+    console.error("エラーが発生しました:", error);
+    return "無効データ";
+  }
 }
 
 const app = express();
@@ -95,7 +94,7 @@ app.get("/", async (req, res) => {
         ...item1,
         tripUpdate: item2.tripUpdate,
         icon: "https://loc.bus-vision.jp/ryobi/view/images/common/busicon/10000/2/201_s.png",
-        nextStopName: getStopNameById("18_1"),
+        nextStopName: getStopNameById(item2.tripUpdate.stopTimeUpdate[item1.vehicle.currentStopSequence].stopId), // indexが1スタート
       };
     });
 
