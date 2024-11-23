@@ -141,16 +141,29 @@ app.get("/", async (req, res) => {
       const item2 = ryobiArray2[index];
       return {
         ...item1,
-        tripUpdate: item2.tripUpdate,
+        tripUpdate: {
+          ...item2.tripUpdate, // 元のtripUpdateを展開
+          trip: {
+            ...item2.tripUpdate.trip, // tripの中身を展開
+            routeShortName: getRouteShortNameByRouteId(
+              "ryobi/routes.txt",
+              item2.tripUpdate.trip.routeId
+            ), // routeShortNameを追加
+          },
+          stopTimeUpdate: item2.tripUpdate.stopTimeUpdate.map((stopTime) => ({
+            ...stopTime, // 各stopTimeUpdateを展開
+            stopName: getStopNameByStopId("ryobi/stops.txt", stopTime.stopId), // stopNameを追加
+          })),
+        },
         icon: getIconLinkByVehicleLabel(
           "ryobi/vehicle_icon.csv",
           item1.vehicle.vehicle.label
         ),
-        nextStopName: getStopNameByStopId(
-          "ryobi/stops.txt",
-          item2.tripUpdate.stopTimeUpdate[item1.vehicle.currentStopSequence]
-            .stopId
-        ), // currentStopSequenceが1スタート
+        // nextStopName: getStopNameByStopId(
+        //   "ryobi/stops.txt",
+        //   item2.tripUpdate.stopTimeUpdate[item1.vehicle.currentStopSequence]
+        //     .stopId
+        // ), // currentStopSequenceが1スタート
       };
     });
 
