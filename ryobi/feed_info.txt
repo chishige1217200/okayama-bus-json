@@ -1,0 +1,2 @@
+"feed_publisher_name","feed_publisher_url","feed_lang","feed_start_date","feed_end_date","feed_version"
+"両備バス","http://www.ryobi-holdings.jp/bus/","ja","20241001","20250215","20241001_20241114"
