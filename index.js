@@ -110,10 +110,7 @@ function getIconLinkByVehicleLabel(filePath, vehicleLabel) {
       }
     }
 
-    return (
-      "https://loc.bus-vision.jp/ryobi/view/images/common/busicon/10000/2/" +
-      result
-    );
+    return result;
   } catch (error) {
     console.error("エラーが発生しました:", error);
     return "";
