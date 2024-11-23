@@ -40,12 +40,14 @@ const parseData = async (source, isLocal = false) => {
 };
 
 /**
- * CSVデータを同期的に読み込み、コラム0に対応するコラム2を返却する関数
+ * CSVデータを同期的に読み込み、対応する行の値を返却する関数
  * @param {string} filePath - CSVファイルのパス
- * @param {string} column0 - 検索するコラム0の値
- * @returns {string} - コラム2または"無効データ"
+ * @param {string} param - 検索する値
+ * @param {number} searchColumnId - 検索するコラム列番号
+ * @param {number} returnColumnId - 返却するコラム列番号
+ * @returns {string} - コラムの値または"無効データ"
  */
-function getColumn2ByColumn0(filePath, column0) {
+function getColumnById(filePath, param, searchColumnId, returnColumnId) {
   try {
     // ファイル全体を同期的に読み込む
     const data = fs.readFileSync(filePath, "utf-8");
@@ -60,8 +62,8 @@ function getColumn2ByColumn0(filePath, column0) {
       const columns = row.split(",");
 
       // コラム0が一致する行を探す
-      if (columns[0] === column0) {
-        return columns[2] || "無効データ";
+      if (columns[searchColumnId] === param) {
+        return columns[returnColumnId] || "無効データ";
       }
     }
 
@@ -69,6 +71,52 @@ function getColumn2ByColumn0(filePath, column0) {
   } catch (error) {
     console.error("エラーが発生しました:", error);
     return "無効データ";
+  }
+}
+
+function getStopNameByStopId(filePath, stopId) {
+  return getColumnById(filePath, stopId, 0, 2);
+}
+
+function getRouteShortNameByRouteId(filePath, routeId) {
+  return getColumnById(filePath, routeId, 0, 2);
+}
+
+function getIconLinkByVehicleLabel(filePath, vehicleLabel) {
+  try {
+    // ファイル全体を同期的に読み込む
+    const data = fs.readFileSync(filePath, "utf-8");
+    const rows = data.split("\n"); // 行単位で分割
+    let result = "";
+
+    // CSVヘッダーを除外してデータをループ
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i].trim().replace(/"/g, ""); // ダブルコーテーションをすべて除去
+
+      if (!row) continue; // 空行をスキップ
+
+      const columns = row.split(",");
+
+      // コラム0が一致する行を探す
+      if (columns[0] === vehicleLabel) {
+        result = columns[1];
+        break;
+      }
+
+      // DEFAULT
+      if (columns[0] === "DEFAULT") {
+        result = columns[1];
+        break;
+      }
+    }
+
+    return (
+      "https://loc.bus-vision.jp/ryobi/view/images/common/busicon/10000/2/" +
+      result
+    );
+  } catch (error) {
+    console.error("エラーが発生しました:", error);
+    return "";
   }
 }
 
@@ -94,8 +142,11 @@ app.get("/", async (req, res) => {
       return {
         ...item1,
         tripUpdate: item2.tripUpdate,
-        icon: "https://loc.bus-vision.jp/ryobi/view/images/common/busicon/10000/2/201_s.png",
-        nextStopName: getColumn2ByColumn0(
+        icon: getIconLinkByVehicleLabel(
+          "ryobi/vehicle_icon.csv",
+          item1.vehicle.vehicle.label
+        ),
+        nextStopName: getStopNameByStopId(
           "ryobi/stops.txt",
           item2.tripUpdate.stopTimeUpdate[item1.vehicle.currentStopSequence]
             .stopId
