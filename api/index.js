@@ -5,7 +5,7 @@ const protobuf = require("protobufjs");
 const fs = require("fs");
 
 // gtfs-realtime.protoを読込
-const loadProto = () => protobuf.load("./gtfs-realtime.proto");
+const loadProto = () => protobuf.load("gtfs-realtime.proto");
 
 // データの取得
 const fetchData = async (source, isLocal = false) => {
