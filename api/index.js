@@ -124,7 +124,7 @@ const app = express();
 app.use(cors());
 
 app.get("/", async (req, res) => {
-  let returnArray = null;
+  let returnArray = [];
   const ryobiArray = await parseData(
     "https://loc.bus-vision.jp/realtime/ryobi_vpos_update.bin"
   );
@@ -170,8 +170,8 @@ app.get("/", async (req, res) => {
     });
 
     // console.log(JSON.stringify(returnArray, null, 2));
-    res.send(returnArray);
   }
+  res.send(returnArray);
 });
 
 app.listen(3000, () => console.log("Server ready on port 3000."));
