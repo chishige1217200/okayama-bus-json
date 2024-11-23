@@ -5,7 +5,7 @@ const protobuf = require("protobufjs");
 const fs = require("fs");
 
 // gtfs-realtime.protoを読込
-const loadProto = () => protobuf.load("gtfs-realtime.proto");
+const loadProto = () => protobuf.load("../data/gtfs-realtime.proto");
 
 // データの取得
 const fetchData = async (source, isLocal = false) => {
@@ -143,17 +143,17 @@ app.get("/", async (req, res) => {
           trip: {
             ...item2.tripUpdate.trip, // tripの中身を展開
             routeShortName: getRouteShortNameByRouteId(
-              "ryobi/routes.txt",
+              "../data/ryobi/routes.txt",
               item2.tripUpdate.trip.routeId
             ), // routeShortNameを追加
           },
           stopTimeUpdate: item2.tripUpdate.stopTimeUpdate.map((stopTime) => ({
             ...stopTime, // 各stopTimeUpdateを展開
-            stopName: getStopNameByStopId("ryobi/stops.txt", stopTime.stopId), // stopNameを追加
+            stopName: getStopNameByStopId("../data/ryobi/stops.txt", stopTime.stopId), // stopNameを追加
           })),
         },
         icon: getIconLinkByVehicleLabel(
-          "ryobi/vehicle_icon.csv",
+          "../data/ryobi/vehicle_icon.csv",
           item1.vehicle.vehicle.label
         ),
         // nextStopName: getStopNameByStopId(
