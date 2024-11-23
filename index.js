@@ -40,14 +40,15 @@ const parseData = async (source, isLocal = false) => {
 };
 
 /**
- * CSVデータを同期的に読み込み、stop_idに対応するstop_nameを返却する関数
- * @param {string} stopId - 検索するstop_id
- * @returns {string} - stop_nameまたは"無効データ"
+ * CSVデータを同期的に読み込み、コラム0に対応するコラム2を返却する関数
+ * @param {string} filePath - CSVファイルのパス
+ * @param {string} column0 - 検索するコラム0の値
+ * @returns {string} - コラム2または"無効データ"
  */
-function getStopNameById(stopId) {
+function getColumn2ByColumn0(filePath, column0) {
   try {
     // ファイル全体を同期的に読み込む
-    const data = fs.readFileSync("ryobi/stops.txt", "utf-8");
+    const data = fs.readFileSync(filePath, "utf-8");
     const rows = data.split("\n"); // 行単位で分割
 
     // CSVヘッダーを除外してデータをループ
@@ -58,9 +59,9 @@ function getStopNameById(stopId) {
 
       const columns = row.split(",");
 
-      // stop_idが一致する行を探す
-      if (columns[0] === stopId) {
-        return columns[2] || "無効データ"; // stop_nameを返却
+      // コラム0が一致する行を探す
+      if (columns[0] === column0) {
+        return columns[2] || "無効データ";
       }
     }
 
@@ -94,7 +95,11 @@ app.get("/", async (req, res) => {
         ...item1,
         tripUpdate: item2.tripUpdate,
         icon: "https://loc.bus-vision.jp/ryobi/view/images/common/busicon/10000/2/201_s.png",
-        nextStopName: getStopNameById(item2.tripUpdate.stopTimeUpdate[item1.vehicle.currentStopSequence].stopId), // indexが1スタート
+        nextStopName: getColumn2ByColumn0(
+          "ryobi/stops.txt",
+          item2.tripUpdate.stopTimeUpdate[item1.vehicle.currentStopSequence]
+            .stopId
+        ), // currentStopSequenceが1スタート
       };
     });
 
