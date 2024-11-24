@@ -1,5 +1,5 @@
 const express = require("express");
-const cors = require("cors");
+// const cors = require("cors");
 const axios = require("axios");
 const protobuf = require("protobufjs");
 const fs = require("fs");
@@ -121,7 +121,7 @@ function getIconLinkByVehicleLabel(filePath, vehicleLabel) {
 
 const app = express();
 
-app.use(cors());
+// app.use(cors());
 
 app.get("/", async (req, res) => {
   let returnArray = [];
