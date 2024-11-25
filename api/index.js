@@ -58,16 +58,15 @@ const parseData = async (source, isLocal = false) => {
 
 /**
  * CSVデータを同期的に読み込み、対応する行の値を返却する関数
- * @param {string} filePath - CSVファイルのパス
+ * @param {string} data - CSVデータ
  * @param {string} param - 検索する値
  * @param {number} searchColumnId - 検索するコラム列番号
  * @param {number} returnColumnId - 返却するコラム列番号
  * @returns {string} - コラムの値または"無効データ"
  */
-function getColumnById(filePath, param, searchColumnId, returnColumnId) {
+function getColumnById(data, param, searchColumnId, returnColumnId) {
   try {
     // ファイル全体を同期的に読み込む
-    const data = fs.readFileSync(filePath, "utf-8");
     const rows = data.split("\n"); // 行単位で分割
 
     // CSVヘッダーを除外してデータをループ
