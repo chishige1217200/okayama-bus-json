@@ -9,6 +9,21 @@ const path = require("path");
 const loadProto = () =>
   protobuf.load(path.resolve(__dirname, "../data/", "./gtfs-realtime.proto"));
 
+const ryobi_routes_data = fs.readFileSync(
+  path.resolve(__dirname, "../data/ryobi", "./routes.txt"),
+  "utf-8"
+);
+
+const ryobi_stops_data = fs.readFileSync(
+  path.resolve(__dirname, "../data/ryobi", "./stops.txt"),
+  "utf-8"
+);
+
+const ryobi_icon_data = fs.readFileSync(
+  path.resolve(__dirname, "../data/ryobi", "./vehicle_icon.csv"),
+  "utf-8"
+);
+
 // データの取得
 const fetchData = async (source, isLocal = false) => {
   return isLocal
@@ -43,16 +58,15 @@ const parseData = async (source, isLocal = false) => {
 
 /**
  * CSVデータを同期的に読み込み、対応する行の値を返却する関数
- * @param {string} filePath - CSVファイルのパス
+ * @param {string} data - CSVデータ
  * @param {string} param - 検索する値
  * @param {number} searchColumnId - 検索するコラム列番号
  * @param {number} returnColumnId - 返却するコラム列番号
  * @returns {string} - コラムの値または"無効データ"
  */
-function getColumnById(filePath, param, searchColumnId, returnColumnId) {
+function getColumnById(data, param, searchColumnId, returnColumnId) {
   try {
     // ファイル全体を同期的に読み込む
-    const data = fs.readFileSync(filePath, "utf-8");
     const rows = data.split("\n"); // 行単位で分割
 
     // CSVヘッダーを除外してデータをループ
@@ -76,18 +90,17 @@ function getColumnById(filePath, param, searchColumnId, returnColumnId) {
   }
 }
 
-function getStopNameByStopId(filePath, stopId) {
-  return getColumnById(filePath, stopId, 0, 2);
+function getStopNameByStopId(data, stopId) {
+  return getColumnById(data, stopId, 0, 2);
 }
 
-function getRouteShortNameByRouteId(filePath, routeId) {
-  return getColumnById(filePath, routeId, 0, 2);
+function getRouteShortNameByRouteId(data, routeId) {
+  return getColumnById(data, routeId, 0, 2);
 }
 
-function getIconLinkByVehicleLabel(filePath, vehicleLabel) {
+function getIconLinkByVehicleLabel(data, vehicleLabel) {
   try {
     // ファイル全体を同期的に読み込む
-    const data = fs.readFileSync(filePath, "utf-8");
     const rows = data.split("\n"); // 行単位で分割
     let result = "";
 
@@ -145,20 +158,17 @@ app.get("/", async (req, res) => {
           trip: {
             ...item2.tripUpdate.trip, // tripの中身を展開
             routeShortName: getRouteShortNameByRouteId(
-              path.resolve(__dirname, "../data/ryobi", "./routes.txt"),
+              ryobi_routes_data,
               item2.tripUpdate.trip.routeId
             ), // routeShortNameを追加
           },
           stopTimeUpdate: item2.tripUpdate.stopTimeUpdate.map((stopTime) => ({
             ...stopTime, // 各stopTimeUpdateを展開
-            stopName: getStopNameByStopId(
-              path.resolve(__dirname, "../data/ryobi", "./stops.txt"),
-              stopTime.stopId
-            ), // stopNameを追加
+            stopName: getStopNameByStopId(ryobi_stops_data, stopTime.stopId), // stopNameを追加
           })),
         },
         icon: getIconLinkByVehicleLabel(
-          path.resolve(__dirname, "../data/ryobi", "./vehicle_icon.csv"),
+          ryobi_icon_data,
           item1.vehicle.vehicle.label
         ),
         // nextStopName: getStopNameByStopId(
