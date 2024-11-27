@@ -14,6 +14,11 @@ const ryobi_routes_data = fs.readFileSync(
   "utf-8"
 );
 
+const ryobi_routesjp_data = fs.readFileSync(
+  path.resolve(__dirname, "../data/ryobi", "./routes_jp.txt"),
+  "utf-8"
+);
+
 const ryobi_stops_data = fs.readFileSync(
   path.resolve(__dirname, "../data/ryobi", "./stops.txt"),
   "utf-8"
@@ -77,7 +82,7 @@ function getColumnById(data, param, searchColumnId, returnColumnId) {
 
       const columns = row.split(",");
 
-      // コラム0が一致する行を探す
+      // コラムが一致する行を探す
       if (columns[searchColumnId] === param) {
         return columns[returnColumnId] || "無効データ";
       }
@@ -96,6 +101,10 @@ function getStopNameByStopId(data, stopId) {
 
 function getRouteShortNameByRouteId(data, routeId) {
   return getColumnById(data, routeId, 0, 2);
+}
+
+function getDestinationStopNameByRouteId(data, routeId) {
+  return getColumnById(data, routeId, 0, 4);
 }
 
 function getIconLinkByVehicleLabel(data, vehicleLabel) {
@@ -161,6 +170,10 @@ app.get("/", async (req, res) => {
               ryobi_routes_data,
               item2.tripUpdate.trip.routeId
             ), // routeShortNameを追加
+            destinationStopName: getDestinationStopNameByRouteId(
+              ryobi_routesjp_data,
+              item2.tripUpdate.trip.routeId
+            ), // destinationStopNameを追加
           },
           stopTimeUpdate: item2.tripUpdate.stopTimeUpdate.map((stopTime) => ({
             ...stopTime, // 各stopTimeUpdateを展開
