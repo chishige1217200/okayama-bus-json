@@ -139,12 +139,10 @@ app.get("/", async (req, res) => {
   // console.log("処理開始");
 
   let returnArray = [];
-  const ryobiArray = await parseData(
-    "https://loc.bus-vision.jp/realtime/ryobi_vpos_update.bin"
-  );
-  const ryobiArray2 = await parseData(
-    "https://loc.bus-vision.jp/realtime/ryobi_trip_update.bin"
-  );
+  const [ryobiArray, ryobiArray2] = await Promise.all([
+    parseData("https://loc.bus-vision.jp/realtime/ryobi_vpos_update.bin"),
+    parseData("https://loc.bus-vision.jp/realtime/ryobi_trip_update.bin"),
+  ]);
   //   const ryobiArray = await parseData("./ryobi_vpos_update.bin", true);
   //   const ryobiArray2 = await parseData("./ryobi_trip_update.bin", true);
 
