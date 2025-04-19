@@ -71,20 +71,17 @@ const parseData = async (source, isLocal = false) => {
  */
 function getColumnById(data, param, searchColumnId, returnColumnId) {
   try {
-    // ファイル全体を同期的に読み込む
-    const rows = data.split("\n"); // 行単位で分割
+    const rows = data
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean); // 空行を除外
 
-    // CSVヘッダーを除外してデータをループ
+    // 通常行（ヘッダー除く）を走査
     for (let i = 1; i < rows.length; i++) {
-      const row = rows[i].trim().replace(/"/g, ""); // ダブルコーテーションをすべて除去
-
-      if (!row) continue; // 空行をスキップ
-
-      const columns = row.split(",");
-
+      const columns = rows[i].split(",");
       // コラムが一致する行を探す
-      if (columns[searchColumnId] === param) {
-        return columns[returnColumnId] || "無効データ";
+      if (columns[searchColumnId] === `"${param}"`) {
+        return columns[returnColumnId].replace(/"/g, "") ?? "無効データ"; // ダブルコーテーションは除去
       }
     }
 
@@ -109,32 +106,24 @@ function getDestinationStopNameByRouteId(data, routeId) {
 
 function getIconLinkByVehicleLabel(data, vehicleLabel) {
   try {
-    // ファイル全体を同期的に読み込む
-    const rows = data.split("\n"); // 行単位で分割
-    let result = "";
+    const rows = data
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean); // 空行を除外
 
-    // CSVヘッダーを除外してデータをループ
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i].trim().replace(/"/g, ""); // ダブルコーテーションをすべて除去
-
-      if (!row) continue; // 空行をスキップ
-
-      const columns = row.split(",");
-
+    // 通常行（ヘッダー除く・最終行除く）を走査
+    for (let i = 1; i < rows.length - 1; i++) {
+      const columns = rows[i].split(",");
       // コラム0が一致する行を探す
-      if (columns[0] === vehicleLabel) {
-        result = columns[1];
-        break;
-      }
-
-      // DEFAULT
-      if (columns[0] === "DEFAULT") {
-        result = columns[1];
-        break;
+      if (columns[0] === `"${vehicleLabel}"`) {
+        return columns[1].replace(/"/g, ""); // ダブルコーテーションは除去
       }
     }
 
-    return result;
+    // 一致しなかった場合は DEFAULT（最後の有効行）を返す
+    const defaultRow = rows[rows.length - 1];
+    const defaultColumns = defaultRow.split(",");
+    return defaultColumns[1].replace(/"/g, "") ?? ""; // ダブルコーテーションは除去
   } catch (error) {
     console.error("エラーが発生しました:", error);
     return "";
@@ -146,6 +135,9 @@ const app = express();
 app.use(cors());
 
 app.get("/", async (req, res) => {
+  // const start = performance.now();
+  // console.log("処理開始");
+
   let returnArray = [];
   const ryobiArray = await parseData(
     "https://loc.bus-vision.jp/realtime/ryobi_vpos_update.bin"
@@ -155,6 +147,9 @@ app.get("/", async (req, res) => {
   );
   //   const ryobiArray = await parseData("./ryobi_vpos_update.bin", true);
   //   const ryobiArray2 = await parseData("./ryobi_trip_update.bin", true);
+
+  // const connectEnd = performance.now();
+  // console.log(`通信終了まで: ${(connectEnd - start).toFixed(2)} ミリ秒`);
 
   // 配列のマージ
   if (ryobiArray !== undefined && ryobiArray2 !== undefined) {
@@ -194,6 +189,10 @@ app.get("/", async (req, res) => {
 
     // console.log(JSON.stringify(returnArray, null, 2));
   }
+
+  // const processEnd = performance.now();
+  // console.log(`処理終了まで: ${(processEnd - connectEnd).toFixed(2)} ミリ秒`);
+
   res.send(returnArray);
 });
 
